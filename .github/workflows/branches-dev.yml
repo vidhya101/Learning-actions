@@ -1,0 +1,195 @@
+name: branches   # Workflow name visible in GitHub Actions UI
+
+# ============================================================
+# WORKFLOW TRIGGER
+# ============================================================
+# This workflow runs when code is pushed to specific branches.
+# Only pushes to the branches listed below will trigger it.
+
+on:
+  push:
+    branches:
+      - dev            # runs when code is pushed to dev branch
+      - 'feature-*'    # runs for branches like feature-login, feature-api, feature-ui etc
+      - main           # runs when code is pushed to main branch
+
+
+jobs:
+
+  # ==========================================================
+  # JOB 1 : CREATE AND UPLOAD ARTIFACTS
+  # ==========================================================
+  job1:
+    name: job1
+    runs-on: ubuntu-latest      # GitHub provisions an Ubuntu runner VM
+
+    steps:
+
+      - name: step-1 basic system information
+        run: |
+          pwd
+          ls -ltr
+          hostname
+        # pwd
+        #   prints current working directory of runner
+        #
+        # ls -ltr
+        #   lists files in workspace
+        #
+        # hostname
+        #   shows runner hostname
+
+
+      - name: step-2 checkout repository
+        uses: actions/checkout@v4
+        # downloads repository source code into runner workspace
+        # required if workflow needs repo files
+
+
+      - name: step-3 create files for artifacts
+        run: |
+          echo `pwd` >> myartifact.txt
+          mkdir artifacts
+          echo `ls -ltr` >> artifacts/list.txt
+          echo `hostname` >> artifacts/hostname.txt
+        # files created:
+        #
+        # myartifact.txt
+        # artifacts/list.txt
+        # artifacts/hostname.txt
+
+
+      - name: upload single file
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-file
+          path: ./myartifact.txt
+        # uploads a single artifact file
+
+
+      - name: upload directory artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: directory_artifacts
+          path: artifacts/
+        # uploads entire directory
+
+
+      - name: upload multiple paths
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiple-paths
+          path: |
+            ./myartifact.txt
+            artifacts/
+        # uploads both file and directory
+
+
+      - name: upload multiple paths with exclusion
+        uses: actions/upload-artifact@v4
+        with:
+          name: multiple-paths-with-exclusion
+          path: |
+            ./myartifact.txt
+            artifacts/
+            !**/hostname.txt
+        # uploads files but excludes hostname.txt
+
+
+  # ==========================================================
+  # JOB 2 : DOWNLOAD SINGLE FILE ARTIFACT
+  # ==========================================================
+  job2:
+    name: job2
+    runs-on: ubuntu-latest
+    needs: job1                 # job2 starts only after job1 finishes
+
+    steps:
+
+      - name: check workspace before download
+        run: |
+          pwd
+          ls -ltr
+        # shows workspace before artifact download
+
+
+      - name: download single file artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: single-file
+        # downloads artifact created in job1
+
+
+      - name: check workspace after download
+        run: |
+          pwd
+          ls -ltr
+        # verifies artifact has been downloaded
+
+
+
+# ============================================================
+# COMPLETE WORKFLOW EXECUTION FLOW
+# ============================================================
+
+# STEP 1
+# Developer pushes code to a branch.
+
+# STEP 2
+# GitHub checks branch name.
+
+# Workflow runs ONLY if branch matches:
+
+#   dev
+#   main
+#   feature-*
+
+
+# EXAMPLES
+
+# feature-login     -> workflow runs
+# feature-payment   -> workflow runs
+# dev               -> workflow runs
+# main              -> workflow runs
+
+# bugfix-login      -> workflow does NOT run
+# staging           -> workflow does NOT run
+
+
+# ============================================================
+# JOB EXECUTION ORDER
+# ============================================================
+
+# job1 starts first
+
+# job2 depends on job1
+
+# execution graph
+
+#   job1
+#    |
+#   job2
+
+
+# ============================================================
+# WHAT THIS WORKFLOW DEMONSTRATES
+# ============================================================
+
+# branch filtering
+# artifact creation
+# artifact upload
+# artifact download
+# job dependencies using "needs"
+
+
+# ============================================================
+# IMPORTANT CONCEPT
+# ============================================================
+
+# GitHub runners are ephemeral.
+
+# Every job runs on a new VM.
+
+# Files created in job1 do not exist in job2.
+
+# Artifacts allow transferring files between jobs.
