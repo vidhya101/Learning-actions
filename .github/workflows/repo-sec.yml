@@ -1,4 +1,4 @@
-name: env-variables   # Workflow name visible in GitHub Actions UI
+name: repo-sec   # Workflow name visible in GitHub Actions UI
 
 # ============================================================
 # WORKFLOW TRIGGER
