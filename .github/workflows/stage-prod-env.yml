@@ -193,7 +193,7 @@ jobs:
   staging:
     name: STAGE DEPLOYMENT
     runs-on: ubuntu-latest
-    needs: [job1, job2, job3]
+  
     environment:
       name: STAGING
     # This job is attached to the GitHub Environment named STAGING.
@@ -262,7 +262,7 @@ jobs:
   production:
     name: PRODUCTION DEPLOYMENT
     runs-on: ubuntu-latest
-    needs: staging
+
     environment:
       name: PRODUCTION
     # This job is attached to PRODUCTION environment.
