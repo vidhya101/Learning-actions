@@ -176,7 +176,7 @@ jobs:
         run: |
           echo "[INFO] Triggered by event: ${{ github.event_name }}"
           echo "[INFO] Change made by user: ${{ github.actor }}"
-          echo "[INFO] Branch where change happened: ${{ github.ref_name }}"
+          echo "[INFO] Branch where change happened: ${{ github.head_ref }}"
           echo "[INFO] Runner OS: ${{ runner.os }}"
           echo "[INFO] Current Job ID: ${{ job.check_run_id }}"
 
