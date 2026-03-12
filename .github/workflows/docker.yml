@@ -1,6 +1,5 @@
 
-name: python-workflow
-
+name: docker-build-push
 on:
   push:
     branches:
@@ -11,20 +10,6 @@ on:
       - main
 
 jobs:
-
-  # ==========================================================
-  # JOB 1 : UNIT TEST EXECUTION
-  # ==========================================================
-  # This job validates the application functionality.
-  #
-  # Responsibilities:
-  #
-  # 1. Download repository source code
-  # 2. Install Python runtime
-  # 3. Install project dependencies
-  # 4. Execute automated unit tests
-  # 5. Generate code coverage report
-  # 6. Upload reports as artifacts
 
   unit-tests:
 
