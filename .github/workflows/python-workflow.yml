@@ -1,12 +1,8 @@
 # ============================================================
 # WORKFLOW NAME
 # ============================================================
-# This name is what appears inside the GitHub Actions UI.
-# When someone opens the Actions tab they will see this workflow
-# listed with this name.
-# This name is what appears inside the GitHub Actions UI.
-# When someone opens the Actions tab they will see this workflow
-# listed with this name.
+# This name appears in the GitHub Actions UI under the
+# "Actions" tab of the repository.
 
 name: python-workflow
 
@@ -14,21 +10,13 @@ name: python-workflow
 # ============================================================
 # WORKFLOW TRIGGERS
 # ============================================================
-# This section defines WHEN this workflow will run.
+# This workflow will automatically start when:
 #
-# The workflow runs in two cases:
-# This section defines WHEN this workflow will run.
+# 1. Code is pushed to the main branch
+# 2. A pull request is opened or updated targeting main
 #
-# The workflow runs in two cases:
-#
-# 1. When code is pushed directly to the main branch
-# 2. When a Pull Request is created or updated targeting main
-#
-# This is a common CI pattern used in most companies.
-# 1. When code is pushed directly to the main branch
-# 2. When a Pull Request is created or updated targeting main
-#
-# This is a common CI pattern used in most companies.
+# This is a typical Continuous Integration (CI) setup
+# where code changes are validated before merging.
 
 on:
   push:
@@ -46,58 +34,40 @@ on:
 # A workflow can contain multiple jobs.
 #
 # Important concept:
-# Each job runs on a fresh virtual machine called a "runner".
+# Each job runs on a fresh virtual machine called a runner.
 #
-# This means jobs do NOT share files unless artifacts are used.
-# A workflow can contain multiple jobs.
-#
-# Important concept:
-# Each job runs on a fresh virtual machine called a "runner".
-#
-# This means jobs do NOT share files unless artifacts are used.
+# Runners are temporary, so files do NOT persist
+# between jobs unless artifacts are used.
 
 jobs:
 
 
-
   # ==========================================================
-  # JOB 1 : UNIT TEST EXECUTION
   # JOB 1 : UNIT TEST EXECUTION
   # ==========================================================
   # Purpose of this job:
-#
-# - Validate the Python application
-# - Install dependencies
-# - Run automated tests
-# - Generate coverage reports
-  # Purpose of this job:
-#
-# - Validate the Python application
-# - Install dependencies
-# - Run automated tests
-# - Generate coverage reports
+  #
+  # - Validate Python application
+  # - Install dependencies
+  # - Run automated tests
+  # - Generate coverage reports
 
   unit-tests:
 
     name: Running unit test
 
-    # GitHub will automatically provision a Linux runner
-    # GitHub will automatically provision a Linux runner
+    # GitHub will automatically start a Linux VM runner
     runs-on: ubuntu-latest
 
     steps:
 
       # ------------------------------------------------------
       # STEP 1 : DOWNLOAD REPOSITORY CODE
-      # STEP 1 : DOWNLOAD REPOSITORY CODE
       # ------------------------------------------------------
-      # GitHub runners start with an EMPTY filesystem.
-      # GitHub runners start with an EMPTY filesystem.
+      # GitHub runners start with an empty filesystem.
       #
-      # So the first thing we must do is download the code
-      # from the repository to the runner machine.
-      # So the first thing we must do is download the code
-      # from the repository to the runner machine.
+      # This step downloads the repository source code
+      # into the runner machine.
 
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -106,17 +76,11 @@ jobs:
 
       # ------------------------------------------------------
       # STEP 2 : INSTALL PYTHON RUNTIME
-      # STEP 2 : INSTALL PYTHON RUNTIME
       # ------------------------------------------------------
-      # This action installs Python version 3.10
-      # on the runner machine.
-      # This action installs Python version 3.10
-      # on the runner machine.
+      # This installs Python version 3.10 on the runner.
       #
-      # Without this step the runner might not have
-      # the correct Python version required by the project.
-      # Without this step the runner might not have
-      # the correct Python version required by the project.
+      # Many projects require a specific Python version,
+      # so we explicitly define it here.
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -127,21 +91,12 @@ jobs:
 
       # ------------------------------------------------------
       # STEP 3 : INSTALL PROJECT DEPENDENCIES
-      # STEP 3 : INSTALL PROJECT DEPENDENCIES
       # ------------------------------------------------------
-      # Most Python projects depend on external libraries.
-      # Most Python projects depend on external libraries.
+      # Python projects usually depend on external libraries.
       #
-      # These libraries are listed inside the file:
+      # These dependencies are listed in requirements.txt.
       #
-      # requirements.txt
-      #
-      # pip is the Python package manager used to install them.
-      # These libraries are listed inside the file:
-      #
-      # requirements.txt
-      #
-      # pip is the Python package manager used to install them.
+      # pip is Python's package manager used to install them.
 
       - name: Installing Dependencies
         run: |
@@ -152,28 +107,17 @@ jobs:
 
       # ------------------------------------------------------
       # STEP 4 : RUN UNIT TESTS
-      # STEP 4 : RUN UNIT TESTS
       # ------------------------------------------------------
-      # pytest is a popular testing framework for Python.
+      # pytest is a popular Python testing framework.
       #
-      # This command does several things:
-      #
-      # creates a folder called reports/
-      # runs unit tests
-      # generates coverage report
-      # outputs results in XML format
-      # pytest is a popular testing framework for Python.
-      #
-      # This command does several things:
-      #
-      # creates a folder called reports/
-      # runs unit tests
-      # generates coverage report
-      # outputs results in XML format
+      # This command:
+      # 1. Creates a reports folder
+      # 2. Executes test cases
+      # 3. Generates test results
+      # 4. Generates code coverage report
 
       - name: Run unit tests
         run: |
-          mkdir reports/
           mkdir reports/
           pytest --junitxml=reports/unit-test-results.xml --cov=. --cov-report=xml --cov-report=term-missing -v
 
@@ -182,28 +126,14 @@ jobs:
       # ------------------------------------------------------
       # STEP 5 : UPLOAD TEST REPORTS
       # ------------------------------------------------------
-      # GitHub runners are temporary.
+      # GitHub runners are temporary machines.
       #
-      # After the job finishes the runner disappears.
+      # Once the job finishes, the VM is destroyed.
       #
-      # So if we want to keep test reports we must upload them
-      # as artifacts.
+      # To preserve test reports we upload them as artifacts.
 
-      - name: upload code coverage report
+      - name: Upload code coverage report
         uses: actions/upload-artifact@v4
-
-      # ------------------------------------------------------
-      # STEP 5 : UPLOAD TEST REPORTS
-      # ------------------------------------------------------
-      # GitHub runners are temporary.
-      #
-      # After the job finishes the runner disappears.
-      #
-      # So if we want to keep test reports we must upload them
-      # as artifacts.
-
-      - name: upload code coverage report
-        uses: actions/upload-artifact@v3
         with:
           name: code-coverage-report
           path: reports/
@@ -213,9 +143,20 @@ jobs:
   # ==========================================================
   # JOB 2 : CODEQL SECURITY SCAN
   # ==========================================================
-  # This job performs automated security analysis on the code.
+  # CodeQL is GitHub's static code analysis engine.
   #
-  # CodeQL scans the source code for security vulnerabilities.
+  # It scans source code to detect security vulnerabilities
+  # such as:
+  #
+  # - SQL Injection
+  # - Command Injection
+  # - Unsafe user input
+  # - Hardcoded secrets
+  # - Path traversal vulnerabilities
+  #
+  # The results appear in:
+  #
+  # Repository → Security → Code Scanning Alerts
 
   codeql:
 
@@ -227,13 +168,11 @@ jobs:
     # ----------------------------------------------------------
     # PERMISSIONS
     # ----------------------------------------------------------
-    # GitHub Actions runs with limited permissions by default.
+    # GitHub workflows run with limited permissions by default.
     #
-    # CodeQL requires special permissions to upload
-    # security results to GitHub.
+    # CodeQL requires permission to upload security results.
 
     permissions:
-
       actions: read
       contents: read
       security-events: write
@@ -246,7 +185,6 @@ jobs:
     # Matrix allows running the job for multiple languages.
     #
     # Example:
-    #
     # python
     # javascript
     # java
@@ -254,9 +192,7 @@ jobs:
     # Here we only scan Python.
 
     strategy:
-
       fail-fast: false
-
       matrix:
         language: ['python']
 
@@ -265,7 +201,7 @@ jobs:
     steps:
 
       # ------------------------------------------------------
-      # STEP 1 : DOWNLOAD REPOSITORY CODE
+      # STEP 1 : CHECKOUT CODE
       # ------------------------------------------------------
 
       - name: Checkout repository
@@ -274,11 +210,12 @@ jobs:
 
 
       # ------------------------------------------------------
-      # STEP 2 : INITIALIZE CODEQL
+      # STEP 2 : INITIALIZE CODEQL ENGINE
       # ------------------------------------------------------
-      # This step prepares the CodeQL engine.
+      # This prepares CodeQL to analyze the code.
       #
-      # It creates a code database for the selected language.
+      # It converts the source code into a CodeQL database
+      # representing program structure.
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
@@ -290,98 +227,142 @@ jobs:
       # ------------------------------------------------------
       # STEP 3 : RUN SECURITY ANALYSIS
       # ------------------------------------------------------
-      # This step runs security queries against
-      # the CodeQL database and reports vulnerabilities.
+      # This runs built-in security queries on the
+      # CodeQL database to detect vulnerabilities.
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
           category: "security"
 
+
+
   # ==========================================================
-  # JOB 2 : CODEQL SECURITY SCAN
+  # JOB 3 : SONARQUBE CODE QUALITY ANALYSIS
   # ==========================================================
-  # This job performs automated security analysis on the code.
+  # SonarQube analyzes code quality and maintainability.
   #
-  # CodeQL scans the source code for security vulnerabilities.
+  # It detects:
+  #
+  # - Code smells
+  # - Bugs
+  # - Duplicate code
+  # - Security issues
+  # - Technical debt
 
-  codeql:
+  sonarqube:
 
-    name: CodeQL security scan
+    name: SonarQube Scan
 
     runs-on: ubuntu-latest
 
-
-    # ----------------------------------------------------------
-    # PERMISSIONS
-    # ----------------------------------------------------------
-    # GitHub Actions runs with limited permissions by default.
-    #
-    # CodeQL requires special permissions to upload
-    # security results to GitHub.
-
-    permissions:
-
-      actions: read
-      contents: read
-      security-events: write
-
-
-
-    # ----------------------------------------------------------
-    # MATRIX STRATEGY
-    # ----------------------------------------------------------
-    # Matrix allows running the job for multiple languages.
-    #
-    # Example:
-    #
-    # python
-    # javascript
-    # java
-    #
-    # Here we only scan Python.
-
-    strategy:
-
-      fail-fast: false
-
-      matrix:
-        language: ['python']
-
-
-
     steps:
 
       # ------------------------------------------------------
-      # STEP 1 : DOWNLOAD REPOSITORY CODE
+      # STEP 1 : CHECKOUT CODE
       # ------------------------------------------------------
+      # fetch-depth:0 ensures full git history is downloaded
+      # which improves SonarQube analysis accuracy.
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-
-
-      # ------------------------------------------------------
-      # STEP 2 : INITIALIZE CODEQL
-      # ------------------------------------------------------
-      # This step prepares the CodeQL engine.
-      #
-      # It creates a code database for the selected language.
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+      - uses: actions/checkout@v4
         with:
-          languages: ${{ matrix.language }}
+          fetch-depth: 0
 
 
 
       # ------------------------------------------------------
-      # STEP 3 : RUN SECURITY ANALYSIS
+      # STEP 2 : RUN SONARQUBE SCAN
       # ------------------------------------------------------
-      # This step runs security queries against
-      # the CodeQL database and reports vulnerabilities.
+      # SONAR_TOKEN is stored securely inside
+      # GitHub repository secrets.
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-        with:
-          category: "security"
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
+
+# ============================================================
+# WORKFLOW EXECUTION FLOW (CI PIPELINE EXPLAINED)
+# ============================================================
+#
+# Step 1
+# A developer pushes code or opens a pull request.
+#
+# Step 2
+# GitHub detects the event trigger.
+#
+# Step 3
+# GitHub creates temporary virtual machines (runners).
+#
+# Step 4
+# Three jobs run in parallel:
+#
+# unit-tests
+# codeql
+# sonarqube
+#
+# Step 5
+# unit-tests job:
+#
+# - repository downloaded
+# - Python installed
+# - dependencies installed
+# - pytest runs tests
+# - coverage report generated
+# - report uploaded as artifact
+#
+# Step 6
+# codeql job:
+#
+# - repository downloaded
+# - CodeQL engine initialized
+# - code converted to internal database
+# - security queries executed
+# - vulnerabilities reported
+#
+# Step 7
+# sonarqube job:
+#
+# - repository downloaded
+# - code scanned for maintainability and bugs
+# - results sent to SonarQube dashboard
+#
+# Step 8
+# Results are visible in GitHub:
+#
+# Tests → Actions tab
+# Security issues → Security tab
+# Code quality → SonarQube dashboard
+#
+# ============================================================
+# FINAL CI PIPELINE ARCHITECTURE
+# ============================================================
+#
+# Developer Push / PR
+#          ↓
+# GitHub Actions Trigger
+#          ↓
+# ┌───────────────────────────────┐
+# │ Unit Tests                    │
+# │ Code Coverage                 │
+# └───────────────────────────────┘
+#          ↓
+# ┌───────────────────────────────┐
+# │ CodeQL Security Scan          │
+# └───────────────────────────────┘
+#          ↓
+# ┌───────────────────────────────┐
+# │ SonarQube Quality Scan        │
+# └───────────────────────────────┘
+#
+# This ensures:
+#
+# Code works correctly
+# Code is secure
+# Code quality is maintained
+#
+# before it gets merged into main.
+#
+# ============================================================
