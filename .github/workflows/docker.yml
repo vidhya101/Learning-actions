@@ -1,5 +1,5 @@
 
-name: docker-build-push
+name: docker-build-push-pipeline
 on:
   push:
     branches:
