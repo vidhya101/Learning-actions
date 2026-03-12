@@ -275,9 +275,22 @@ jobs:
       # ------------------------------------------------------
       # SONAR_TOKEN is stored securely inside
       # GitHub repository secrets.
+      # this will do the analysis and publish the analysis on sonar cloud dashboard
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      # ------------------------------------------------------
+      # STEP 3 : CHECK SONARQUBE QUALITY GATE
+      # ------------------------------------------------------
+      # After the scan, we check if the code meets the quality standards
+      # defined in SonarQube. If the quality gate fails, the workflow will be marked as failed.
+      # This ensures that code with critical issues does not get merged.
+      # The results of the scan and quality gate check will be visible in the SonarQube dashboard.
+      - name: SonarQube Quality Gate Check
+        uses: SonarSource/sonarqube-quality-gate-action@v1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
