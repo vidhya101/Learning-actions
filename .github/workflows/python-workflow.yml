@@ -4,6 +4,9 @@
 # This name is what appears inside the GitHub Actions UI.
 # When someone opens the Actions tab they will see this workflow
 # listed with this name.
+# This name is what appears inside the GitHub Actions UI.
+# When someone opens the Actions tab they will see this workflow
+# listed with this name.
 
 name: python-workflow
 
@@ -14,7 +17,14 @@ name: python-workflow
 # This section defines WHEN this workflow will run.
 #
 # The workflow runs in two cases:
+# This section defines WHEN this workflow will run.
 #
+# The workflow runs in two cases:
+#
+# 1. When code is pushed directly to the main branch
+# 2. When a Pull Request is created or updated targeting main
+#
+# This is a common CI pattern used in most companies.
 # 1. When code is pushed directly to the main branch
 # 2. When a Pull Request is created or updated targeting main
 #
@@ -39,13 +49,27 @@ on:
 # Each job runs on a fresh virtual machine called a "runner".
 #
 # This means jobs do NOT share files unless artifacts are used.
+# A workflow can contain multiple jobs.
+#
+# Important concept:
+# Each job runs on a fresh virtual machine called a "runner".
+#
+# This means jobs do NOT share files unless artifacts are used.
 
 jobs:
 
 
+
   # ==========================================================
   # JOB 1 : UNIT TEST EXECUTION
+  # JOB 1 : UNIT TEST EXECUTION
   # ==========================================================
+  # Purpose of this job:
+#
+# - Validate the Python application
+# - Install dependencies
+# - Run automated tests
+# - Generate coverage reports
   # Purpose of this job:
 #
 # - Validate the Python application
@@ -58,15 +82,20 @@ jobs:
     name: Running unit test
 
     # GitHub will automatically provision a Linux runner
+    # GitHub will automatically provision a Linux runner
     runs-on: ubuntu-latest
 
     steps:
 
       # ------------------------------------------------------
       # STEP 1 : DOWNLOAD REPOSITORY CODE
+      # STEP 1 : DOWNLOAD REPOSITORY CODE
       # ------------------------------------------------------
       # GitHub runners start with an EMPTY filesystem.
+      # GitHub runners start with an EMPTY filesystem.
       #
+      # So the first thing we must do is download the code
+      # from the repository to the runner machine.
       # So the first thing we must do is download the code
       # from the repository to the runner machine.
 
@@ -77,10 +106,15 @@ jobs:
 
       # ------------------------------------------------------
       # STEP 2 : INSTALL PYTHON RUNTIME
+      # STEP 2 : INSTALL PYTHON RUNTIME
       # ------------------------------------------------------
       # This action installs Python version 3.10
       # on the runner machine.
+      # This action installs Python version 3.10
+      # on the runner machine.
       #
+      # Without this step the runner might not have
+      # the correct Python version required by the project.
       # Without this step the runner might not have
       # the correct Python version required by the project.
 
@@ -93,9 +127,16 @@ jobs:
 
       # ------------------------------------------------------
       # STEP 3 : INSTALL PROJECT DEPENDENCIES
+      # STEP 3 : INSTALL PROJECT DEPENDENCIES
       # ------------------------------------------------------
       # Most Python projects depend on external libraries.
+      # Most Python projects depend on external libraries.
       #
+      # These libraries are listed inside the file:
+      #
+      # requirements.txt
+      #
+      # pip is the Python package manager used to install them.
       # These libraries are listed inside the file:
       #
       # requirements.txt
@@ -111,7 +152,16 @@ jobs:
 
       # ------------------------------------------------------
       # STEP 4 : RUN UNIT TESTS
+      # STEP 4 : RUN UNIT TESTS
       # ------------------------------------------------------
+      # pytest is a popular testing framework for Python.
+      #
+      # This command does several things:
+      #
+      # creates a folder called reports/
+      # runs unit tests
+      # generates coverage report
+      # outputs results in XML format
       # pytest is a popular testing framework for Python.
       #
       # This command does several things:
@@ -124,9 +174,23 @@ jobs:
       - name: Run unit tests
         run: |
           mkdir reports/
+          mkdir reports/
           pytest --junitxml=reports/unit-test-results.xml --cov=. --cov-report=xml --cov-report=term-missing -v
 
 
+
+      # ------------------------------------------------------
+      # STEP 5 : UPLOAD TEST REPORTS
+      # ------------------------------------------------------
+      # GitHub runners are temporary.
+      #
+      # After the job finishes the runner disappears.
+      #
+      # So if we want to keep test reports we must upload them
+      # as artifacts.
+
+      - name: upload code coverage report
+        uses: actions/upload-artifact@v4
 
       # ------------------------------------------------------
       # STEP 5 : UPLOAD TEST REPORTS
@@ -145,6 +209,94 @@ jobs:
           path: reports/
 
 
+
+  # ==========================================================
+  # JOB 2 : CODEQL SECURITY SCAN
+  # ==========================================================
+  # This job performs automated security analysis on the code.
+  #
+  # CodeQL scans the source code for security vulnerabilities.
+
+  codeql:
+
+    name: CodeQL security scan
+
+    runs-on: ubuntu-latest
+
+
+    # ----------------------------------------------------------
+    # PERMISSIONS
+    # ----------------------------------------------------------
+    # GitHub Actions runs with limited permissions by default.
+    #
+    # CodeQL requires special permissions to upload
+    # security results to GitHub.
+
+    permissions:
+
+      actions: read
+      contents: read
+      security-events: write
+
+
+
+    # ----------------------------------------------------------
+    # MATRIX STRATEGY
+    # ----------------------------------------------------------
+    # Matrix allows running the job for multiple languages.
+    #
+    # Example:
+    #
+    # python
+    # javascript
+    # java
+    #
+    # Here we only scan Python.
+
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+        language: ['python']
+
+
+
+    steps:
+
+      # ------------------------------------------------------
+      # STEP 1 : DOWNLOAD REPOSITORY CODE
+      # ------------------------------------------------------
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+
+
+      # ------------------------------------------------------
+      # STEP 2 : INITIALIZE CODEQL
+      # ------------------------------------------------------
+      # This step prepares the CodeQL engine.
+      #
+      # It creates a code database for the selected language.
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+
+
+
+      # ------------------------------------------------------
+      # STEP 3 : RUN SECURITY ANALYSIS
+      # ------------------------------------------------------
+      # This step runs security queries against
+      # the CodeQL database and reports vulnerabilities.
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "security"
 
   # ==========================================================
   # JOB 2 : CODEQL SECURITY SCAN
