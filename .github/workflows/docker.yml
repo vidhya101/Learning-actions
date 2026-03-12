@@ -348,7 +348,7 @@ jobs:
           file: ./Dockerfile
           tags: vidhya101_app:${{ steps.vars.outputs.IMAGE_TAGS }}
           push: false
-          load: true
+          load: true       # Load the built image into the local Docker cache of the runner
 
       - name: Save Docker image as artifact
         run:  |
