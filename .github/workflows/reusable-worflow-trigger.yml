@@ -1,6 +1,6 @@
 
 name: reusable-workflow-for-docker build and push to GHCR
-
+#to get a trigger on every push in this repository and also on pull request to main branch
 on:
   push:
     branches:
