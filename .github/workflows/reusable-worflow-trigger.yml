@@ -24,8 +24,6 @@ jobs:
       run_codeql: true
       run_sonarqube: true
    
-
-
     secrets:
 
       # DockerHub username used for docker login
