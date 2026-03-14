@@ -1,0 +1,36 @@
+
+name: reusable-workflow-for-docker build and push to GHCR
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  security-events: write
+  contents: read
+  packages: write
+
+jobs:
+
+  ci-pipeline-job:
+    uses: vidhya101/reusable-workflows-vidhya101/.github/workflows/ci-pipeline.yml@main
+    with:
+      run_codeql: true
+      run_sonarqube: true
+      run_build: false
+    secrets:
+
+      # DockerHub username used for docker login
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
+      # DockerHub password or access token
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      # SonarQube authentication token used for
+      # sending code analysis results to SonarCloud
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
